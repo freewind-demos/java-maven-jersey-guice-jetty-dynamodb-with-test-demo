@@ -8,12 +8,13 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <java.version>11</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
         <junit.version>5.4.0</junit.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <jersey.version>3.0.2</jersey.version>
+        <aws.version>1.12.213</aws.version>
     </properties>
 
     <dependencyManagement>
@@ -30,19 +31,68 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-bom</artifactId>
+            <version>${aws.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>DynamoDBLocal</artifactId>
+            <version>1.13.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.amazonaws</groupId>
+                    <artifactId>aws-java-sdk-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-dynamodb</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
         <!-- Jetty -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-jetty-http</artifactId>
+            <artifactId>jersey-container-grizzly2-http</artifactId>
         </dependency>
 
-        <!-- Jersey DI and core-->
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
+            <version>3.0.4</version>
         </dependency>
 
-        <!-- Jetty 11 needs Servlet 5 -->
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.jetty</groupId>-->
+<!--            <artifactId>jetty-server</artifactId>-->
+<!--            <version>8.1.12.v20130726</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.jetty</groupId>-->
+<!--            <artifactId>jetty-client</artifactId>-->
+<!--            <version>8.1.12.v20130726</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.jetty</groupId>-->
+<!--            <artifactId>jetty-util</artifactId>-->
+<!--            <version>8.1.12.v20130726</version>-->
+<!--        </dependency>-->
+
         <!-- java.lang.NoClassDefFoundError: jakarta/servlet/ServletInputStream -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -72,11 +122,22 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- test json data -->
         <dependency>
-            <groupId>org.skyscreamer</groupId>
-            <artifactId>jsonassert</artifactId>
-            <version>${jsonassert.version}</version>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-grizzly2-http</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20220320</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <!-- use 2.9.1 for Java 7 projects -->
+            <version>3.22.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -128,6 +189,41 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>test</includeScope>
+                            <includeTypes>so,dll,dylib</includeTypes>
+                            <outputDirectory>${project.basedir}/native-libs</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>maven2</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>dynamodb-local-oregon</id>
+            <url>https://s3-us-west-2.amazonaws.com/dynamodb-local/release</url>
+        </repository>
+        <repository>
+            <id>jcenter</id>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+
 </project>
